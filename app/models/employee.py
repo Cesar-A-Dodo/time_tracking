@@ -1,7 +1,10 @@
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from sqlalchemy import String, Boolean
-from typing import List
+from typing import List, TYPE_CHECKING
 from app.database.base import Base
+
+if TYPE_CHECKING:
+    from app.models.time_entry import TimeEntry
 
 class Employee(Base):
     __tablename__ = "employees"

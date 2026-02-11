@@ -3,6 +3,12 @@ from sqlalchemy import ForeignKey, DateTime, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database.base import Base
 from app.schemas import TimeEntryStatus, FinishType
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from app.models.employee import Employee
+    from app.models.activity import Activity
+
 
 class TimeEntry(Base):
     __tablename__ = "time_entries"
