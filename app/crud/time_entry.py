@@ -16,7 +16,7 @@ def get_open_time_entry_by_employee(db: Session, employee_id: int) -> TimeEntry 
         db.query(TimeEntry)
         .filter(
             TimeEntry.employee_id == employee_id,
-            TimeEntry.finish_time.is_(None)
+            TimeEntry.end_time.is_(None)
         )
         .first()
     )
