@@ -1,119 +1,99 @@
 # Time Tracking API
 
-API REST para controle de apontamento de tempo de funcionários em atividades/tarefas.
+API REST para controle de apontamento de tempo de funcionários em atividades.
 
-Este projeto foi desenvolvido com foco em:
-- clareza das regras de negócio
-- controle rigoroso de estados
-- base sólida para evolução futura do sistema
+Projeto desenvolvido com foco em arquitetura limpa, regras de negócio explícitas e evolução incremental.
 
------
+---
 
-## Visão Geral
+## Principais Funcionalidades
 
-A Time Tracking API permite controlar o ciclo completo de trabalho de funcionários, desde o início de uma tarefa até sua finalização.
-
-Funcionalidades principais:
 - Cadastro de funcionários
-- Cadastro de atividades (tarefas)
-- Início de apontamento de tempo
-- Pausa e reinício de apontamento
-- Finalização de apontamento (concluído ou cancelado)
-- Consulta de histórico por funcionário
+- Cadastro de atividades
+- Início de apontamento
+- Pausa e retomada
+- Finalização (concluído ou cancelado)
+- Controle de múltiplos blocos de tempo
+- Cálculo automático do tempo total executado
 
-Todo o fluxo é guiado por **regras explícitas de negócio**, evitando inconsistências como:
-- dois apontamentos ativos para o mesmo funcionário
-- finalizações inválidas
-- reinícios indevidos
+---
 
------
+## Modelo de Tempo
 
-## Tecnologias Utilizadas
+O sistema utiliza **block-based time tracking**:
+
+- Cada início ou retomada cria um bloco
+- Cada pausa ou finalização fecha o bloco
+- O tempo total é a soma de todos os blocos fechados
+
+Esse modelo permite precisão mesmo em cenários com múltiplas pausas.
+
+---
+
+## Regras de Negócio
+
+- Um funcionário pode ter apenas um apontamento ativo por vez
+- Apontamentos finalizados não podem ser alterados
+- Blocos abertos são automaticamente fechados ao pausar ou finalizar
+- Cancelamento encerra o apontamento com tipo de finalização específico
+- Exclusão física de apontamentos não é permitida para preservar métricas
+
+---
+
+## Arquitetura
+
+Estrutura baseada em separação de responsabilidades:
+
+- `models/` → ORM (SQLAlchemy 2.0)
+- `crud/` → Persistência
+- `services/` → Regras de negócio
+- `schemas.py` → Validação (Pydantic)
+- `tests/` → Testes de fluxo real
+
+---
+
+## Tecnologias
 
 - Python 3.12+
 - FastAPI
+- SQLAlchemy 2.0
 - Pydantic
-- SQLite (fase teste)
-- Uvicorn
+- SQLite (desenvolvimento)
 
------
+---
 
-## Estados do Apontamento
+## Executando o Projeto
 
-- Um apontamento pode assumir os seguintes estados:
-
-- "CRIADO"
-- "INICIADO"
-- "PAUSADO"
-- "FINALIZADO"
-
-Tipos de finalização possíveis:
-
-- "CONCLUIDA"
-- "TAREFA_CANCELADA"
-
------
-
-## Regras de Negócio (Resumo)
-
-- Um funcionário pode ter vários apontamentos, mas **apenas um ativo por vez**
-- Um apontamento não pode ser finalizado sem ter sido iniciado
-- Um apontamento pausado pode ser finalizado como **tarefa cancelada**
-- Uma atividade pode ser usada por vários funcionários
-- Atividades semelhantes podem existir para clientes diferentes (IDs distintos)
-
------
-
-## Como Executar o Projeto
-
-### Criar e ativar o ambiente virtual
+```bash
 
 python -m venv venv
 
-Windows
-venv\Scripts\activate
+venv\Scripts\activate  # Windows
+source venv/bin/activate # Linux/macOS
 
-Linux / macOS
-source venv/bin/activate
-
-- Instalar as dependências
 pip install -r requirements.txt
-- Executar a aplicação
 uvicorn app.main:app --reload
 
-- A API ficará disponível em:
-http://127.0.0.1:8000
+```
 
-- Documentação automática (Swagger):
-http://127.0.0.1:8000/docs
+Acesse:
 
------
+API: http://127.0.0.1:8000
 
-## Status do Projeto: Em desenvolvimento
+Docs: http://127.0.0.1:8000/docs
 
------
+---
 
-## Etapas concluídas:
+### Status
 
-Planejamento de regras de negócio
+Em desenvolvimento contínuo.
 
-Modelo de estados
+Próximos passos:
 
-Casos de teste de negócio (conceituais)
+- Métricas por atividade
 
-Schemas Pydantic
+- Métricas por funcionário
 
-Estrutura inicial da API
+- Endpoints completos
 
-Configuração de ambiente
-
------
-
-## Próxima etapa:
-
-Persistência e modelagem do banco de dados (SQLite)
-
-- Observações
-Este projeto foi construído priorizando entendimento, organização e escalabilidade.
-
-Decisões de arquitetura e regras de negócio foram pensadas antes da implementação para evitar retrabalho no futuro.
+- Evolução para ambiente de produção
