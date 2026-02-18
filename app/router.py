@@ -1,6 +1,6 @@
 from fastapi import APIRouter
 from app.routes import employees, activities
-from time_tracking.app.routes import time_entries
+from app.routes import time_entries
 
 api_router = APIRouter()
 

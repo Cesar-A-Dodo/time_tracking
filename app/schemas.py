@@ -3,14 +3,13 @@ from pydantic import BaseModel
 from datetime import datetime
 
 class TimeEntryStatus(str, Enum):
-    CRIADO = "CRIADO"
     INICIADO = "INICIADO"
     PAUSADO = "PAUSADO"
     FINALIZADO = "FINALIZADO"
 
 class FinishType(str, Enum):
     CONCLUIDA = "CONCLUIDA"
-    TAREFA_CANCELADA = "TAREFA_CANCELADA"
+    CANCELADO = "CANCELADO"
 
 class EmployeeBase(BaseModel):
     name: str

@@ -1,42 +1,132 @@
-from datetime import datetime, timezone
 from sqlalchemy.orm import Session
-from app.models.time_entry import TimeEntry, TimeEntryStatus
-from app.crud.time_entry import create_time_entry, get_open_time_entry_by_employee, get_time_entry_by_id, update_time_entry
-
-class TimeEntryAlreadyOpenError(Exception):
-    pass
-
-class TimeEntryNotFoundError(Exception):
-    pass
-
-class TimeEntryAlreadyFinishedError(Exception):
-    pass
+from datetime import datetime, timezone
+from app.models.time_entry import TimeEntry
+from app.models.employee import Employee
+from app.schemas import TimeEntryStatus, FinishType
+from app.crud.time_entry_block import create_block, get_open_block, close_block
+from app.services.exceptions import (
+    EmployeeInactiveError,
+    OpenTimeEntryExistsError,
+    InvalidStatusTransitionError,
+    TimeEntryAlreadyFinalizedError,
+)
 
 def start_time_entry(db: Session, employee_id: int, activity_id: int) -> TimeEntry:
-    open_entry = get_open_time_entry_by_employee(db, employee_id)
+    employee = db.get(Employee, employee_id)
+    
+    if not employee or not employee.is_active:
+        raise EmployeeInactiveError("Funcionário inativo ou inexistente!")
+    
+    open_entry = (
+        db.query(TimeEntry)
+        .filter(
+            TimeEntry.employee_id == employee_id,
+            TimeEntry.status != TimeEntryStatus.FINALIZADO
+        )
+        .first()
+    )
 
     if open_entry:
-        raise TimeEntryAlreadyOpenError("Funcionário já possui um apontamento aberto.")
-
+        raise OpenTimeEntryExistsError("Funcionário já possui apontamento aberto!")
+    
     time_entry = TimeEntry(
         employee_id = employee_id,
         activity_id = activity_id,
-        start_time = datetime.now(timezone.utc),
-        status = TimeEntryStatus.CRIADO
+        status = TimeEntryStatus.INICIADO,
     )
 
-    return create_time_entry(db, time_entry)
+    db.add(time_entry)
+    db.flush()
 
-def finish_time_entry(db: Session, time_entry_id: int) -> TimeEntry:
-    time_entry = get_time_entry_by_id(db, time_entry_id)
+    create_block(db, time_entry.id)
+
+    db.commit()
+    db.refresh(time_entry)
+
+    return time_entry
+
+
+def pause_time_entry(db: Session, time_entry_id) -> TimeEntry:
+    time_entry = db.get(TimeEntry, time_entry_id)
 
     if not time_entry:
-        raise TimeEntryNotFoundError("Apontamento não encontrado.")
+        raise ValueError("Apontamento não encontrado!")
     
-    if time_entry.end_time is not None:
-        raise TimeEntryAlreadyFinishedError("Apontamento ja foi finalizado.")
+    if time_entry.status != TimeEntryStatus.INICIADO:
+        raise InvalidStatusTransitionError("Só é possivel pausar se estiver INICIADO!")
     
-    time_entry.end_time = datetime.now(timezone.utc)
-    time_entry.status = TimeEntryStatus.FINALIZADO
+    block = get_open_block(db, time_entry.id)
 
-    return update_time_entry(db, time_entry)
+    if not block:
+        raise InvalidStatusTransitionError("Nenhum bloco aberto para pausar!")
+    
+    close_block(db, block)
+
+    time_entry.status = TimeEntryStatus.PAUSADO
+
+    db.commit()
+    db.refresh(time_entry)
+
+    return time_entry
+
+
+def resume_time_entry(db: Session, time_entry_id: int) -> TimeEntry:
+    time_entry = db.get(TimeEntry, time_entry_id)
+
+    if not time_entry:
+        raise InvalidStatusTransitionError("Só é possível retomar se estiver PAUSADO!")
+    
+    create_block(db, time_entry.id)
+
+    time_entry.status = TimeEntryStatus.INICIADO
+
+    db.commit()
+    db.refresh(time_entry)
+
+    return time_entry
+
+
+def finish_time_entry(db: Session, time_entry_id: int) -> TimeEntry:
+    time_entry = db.get(TimeEntry, time_entry_id)
+
+    if not time_entry:
+        raise ValueError("Apontamento não encontrado!")
+    
+    if time_entry.status == TimeEntryStatus.FINALIZADO:
+        raise TimeEntryAlreadyFinalizedError("Apontamento já foi finalizado!")
+    
+    block = get_open_block(db, time_entry.id)
+
+    if block:
+        close_block(db, block)
+
+    time_entry.status = TimeEntryStatus.FINALIZADO
+    time_entry.finish_type = FinishType.CONCLUIDA
+
+    db.commit()
+    db.refresh(time_entry)
+
+    return time_entry
+
+
+def cancel_time_entry(db: Session, time_entry_id: int) -> TimeEntry:
+    time_entry = db.get(TimeEntry, time_entry_id)
+
+    if not time_entry:
+        raise ValueError("Apontamento não encontrado!")
+    
+    if time_entry.status == TimeEntryStatus.FINALIZADO:
+        raise TimeEntryAlreadyFinalizedError("Apontamento já foi finalizado!")
+    
+    block = get_open_block(db, time_entry.id)
+
+    if block:
+        close_block(db, block)
+
+    time_entry.status = TimeEntryStatus.FINALIZADO
+    time_entry.finish_type = FinishType.CANCELADO
+
+    db.commit()
+    db.refresh(time_entry)
+
+    return time_entry

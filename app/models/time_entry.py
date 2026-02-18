@@ -1,13 +1,14 @@
-from datetime import datetime
+from datetime import datetime, timezone, timedelta
 from sqlalchemy import ForeignKey, DateTime, Enum
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database.base import Base
 from app.schemas import TimeEntryStatus, FinishType
-from typing import TYPE_CHECKING
+from typing import TYPE_CHECKING, List
 
 if TYPE_CHECKING:
     from app.models.employee import Employee
     from app.models.activity import Activity
+    from app.models.time_entry_block import TimeEntryBlock
 
 
 class TimeEntry(Base):
@@ -27,12 +28,9 @@ class TimeEntry(Base):
 
     status: Mapped[TimeEntryStatus] = mapped_column(
         Enum(TimeEntryStatus),
-        default=TimeEntryStatus.CRIADO,
+        default=TimeEntryStatus.INICIADO,
         nullable=False,
     )
-
-    start_time: Mapped[datetime] = mapped_column(DateTime, nullable=False)
-    end_time: Mapped[datetime | None] = mapped_column(DateTime, nullable=True)
 
     finish_type: Mapped[FinishType | None] = mapped_column(
         Enum(FinishType),
@@ -46,3 +44,13 @@ class TimeEntry(Base):
     activity: Mapped["Activity"] = relationship(
         back_populates="time_entries"
     )
+
+    blocks: Mapped[List["TimeEntryBlock"]] = relationship(back_populates="time_entry", cascade="all, delete-orphan")
+
+    def calculate_total_time(self) -> timedelta:
+        total = timedelta()
+
+        for block in self.blocks:
+            if block.end_time:
+                total += block.end_time - block.start_time
+        return total
