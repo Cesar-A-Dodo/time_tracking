@@ -4,6 +4,9 @@ from app.models.time_entry import TimeEntry
 from app.models.employee import Employee
 from app.schemas import TimeEntryStatus, FinishType
 from app.crud.time_entry_block import create_block, get_open_block, close_block
+from app.crud.activity import get_activity
+from app.crud.employee import get_employee
+from app.services.exceptions import ActivityNotFoundError, ActivityInactiveError
 from app.services.exceptions import (
     EmployeeInactiveError,
     OpenTimeEntryExistsError,
@@ -12,16 +15,23 @@ from app.services.exceptions import (
 )
 
 def start_time_entry(db: Session, employee_id: int, activity_id: int) -> TimeEntry:
-    employee = db.get(Employee, employee_id)
+    employee = get_employee(db, employee_id)
     
     if not employee or not employee.is_active:
         raise EmployeeInactiveError("Funcionário inativo ou inexistente!")
+    
+    activity = get_activity(db, activity_id)
+    
+    if not activity:
+        raise ActivityNotFoundError("Atividade inexistente!")
+    if not activity.is_active:
+        raise ActivityInactiveError("Atividade inativa!")
     
     open_entry = (
         db.query(TimeEntry)
         .filter(
             TimeEntry.employee_id == employee_id,
-            TimeEntry.status != TimeEntryStatus.FINALIZADO
+            TimeEntry.status.in_([TimeEntryStatus.INICIADO, TimeEntryStatus.PAUSADO]),
         )
         .first()
     )

@@ -34,6 +34,7 @@ class ActivityCreate(ActivityBase):
 
 class ActivityRead(ActivityBase):
     id: int
+    is_active: bool
     estimated_time_minutes: int | None = None
 
     class Config:
@@ -50,9 +51,8 @@ class TimeEntryCreate(TimeEntryBase):
 class TimeEntryRead(TimeEntryBase):
     id: int
     status: TimeEntryStatus
-    start_time: datetime
-    end_time: datetime | None = None
     finish_type: FinishType | None = None
+    cancel_reason: str | None = None
 
     class Config:
         from_attributes = True

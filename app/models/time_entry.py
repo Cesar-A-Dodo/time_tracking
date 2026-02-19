@@ -1,5 +1,5 @@
-from datetime import datetime, timezone, timedelta
-from sqlalchemy import ForeignKey, DateTime, Enum
+from datetime import timedelta
+from sqlalchemy import ForeignKey, Enum, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database.base import Base
 from app.schemas import TimeEntryStatus, FinishType
@@ -37,6 +37,8 @@ class TimeEntry(Base):
         nullable=True,
     )
 
+    cancel_reason: Mapped[str | None] = mapped_column(String(255), nullable=True)
+    
     employee: Mapped["Employee"] = relationship(
         back_populates="time_entries"
     )
