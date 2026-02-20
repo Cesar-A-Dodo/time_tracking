@@ -23,6 +23,10 @@ def get_employee_by_id(db: Session, employee_id: int) -> Employee:
     return employee
 
 
+def list_all_employees(db: Session, *, only_active: bool = False) -> list[Employee]:
+    return list_employees(db, only_active=only_active)
+
+
 def update_employee(
         db: Session,
         employee_id: int,
