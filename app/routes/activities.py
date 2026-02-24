@@ -1,6 +1,7 @@
-from fastapi import APIRouter, Depends, HTTPException, status
+from fastapi import APIRouter, Depends, status
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
+
 from app.database.session import SessionLocal
 from app.schemas import ActivityRead
 from app.services.activity_service import (
@@ -9,10 +10,6 @@ from app.services.activity_service import (
     get_activity_by_id,
     update_activity,
     disable_activity,
-)
-from app.services.exceptions import (
-    ActivityNotFoundError,
-    ActivityAlreadyInactiveError,
 )
 
 router = APIRouter(prefix="/activities", tags=["Activities"])
@@ -55,32 +52,20 @@ def list_activities(only_active: bool = False, db: Session = Depends(get_db)):
 
 @router.get("/{activity_id}", response_model=ActivityRead)
 def get_activity(activity_id: int, db: Session = Depends(get_db)):
-    try:
-        return get_activity_by_id(db, activity_id)
-    except ActivityNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+    return get_activity_by_id(db, activity_id)
 
 
 @router.patch("/{activity_id}", response_model=ActivityRead)
 def patch_activity(activity_id: int, payload: ActivityUpdate, db: Session = Depends(get_db)):
-    try:
-        return update_activity(
-            db,
-            activity_id,
-            name=payload.name,
-            client=payload.client,
-            estimated_time_minutes=payload.estimated_time_minutes,
-        )
-    except ActivityNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e))
+    return update_activity(
+        db,
+        activity_id,
+        name=payload.name,
+        client=payload.client,
+        estimated_time_minutes=payload.estimated_time_minutes,
+    )
 
 
 @router.post("/{activity_id}/disable", response_model=ActivityRead)
 def disable_activity_route(activity_id: int, db: Session = Depends(get_db)):
-    try:
-        return disable_activity(db, activity_id)
-    except ActivityNotFoundError as e:
-        raise HTTPException(status_code=404, detail=str(e))
-    except ActivityAlreadyInactiveError as e:
-        raise HTTPException(status_code=409, detail=str(e))
-    
+    return disable_activity(db, activity_id)
