@@ -2,98 +2,138 @@
 
 API REST para controle de apontamento de tempo de funcionários em atividades.
 
-Projeto desenvolvido com foco em arquitetura limpa, regras de negócio explícitas e evolução incremental.
+Este projeto foi desenvolvido com foco didático, aplicando boas práticas de organização de código, separação de camadas e modelagem de regras de negócio.
 
 ---
 
-## Principais Funcionalidades
+## Objetivo
+
+Simular um sistema empresarial de controle de apontamentos de tempo, permitindo:
 
 - Cadastro de funcionários
 - Cadastro de atividades
-- Início de apontamento
-- Pausa e retomada
-- Finalização (concluído ou cancelado)
-- Controle de múltiplos blocos de tempo
-- Cálculo automático do tempo total executado
-
----
-
-## Modelo de Tempo
-
-O sistema utiliza **block-based time tracking**:
-
-- Cada início ou retomada cria um bloco
-- Cada pausa ou finalização fecha o bloco
-- O tempo total é a soma de todos os blocos fechados
-
-Esse modelo permite precisão mesmo em cenários com múltiplas pausas.
-
----
-
-## Regras de Negócio
-
-- Um funcionário pode ter apenas um apontamento ativo por vez
-- Apontamentos finalizados não podem ser alterados
-- Blocos abertos são automaticamente fechados ao pausar ou finalizar
-- Cancelamento encerra o apontamento com tipo de finalização específico
-- Exclusão física de apontamentos não é permitida para preservar métricas
-
----
-
-## Arquitetura
-
-Estrutura baseada em separação de responsabilidades:
-
-- `models/` → ORM (SQLAlchemy 2.0)
-- `crud/` → Persistência
-- `services/` → Regras de negócio
-- `schemas.py` → Validação (Pydantic)
-- `tests/` → Testes de fluxo real
+- Início, pausa, retomada e finalização de apontamentos
+- Cancelamento automático de apontamentos ao desativar funcionário
+- Bloqueio de novos apontamentos para atividades inativas
+- Tratamento padronizado de exceções de domínio
 
 ---
 
 ## Tecnologias
 
-- Python 3.12+
+- Python 3.11+
 - FastAPI
-- SQLAlchemy 2.0
-- Pydantic
-- SQLite (desenvolvimento)
+- SQLAlchemy (ORM)
+- SQLite
+- Uvicorn
+- Docker
 
 ---
 
-## Executando o Projeto
+## Arquitetura
+
+O projeto está organizado em camadas, separando responsabilidades:
+
+
+app/
+├── models/    # Entidades e mapeamento ORM
+├── crud/    # Acesso ao banco de dados
+├── services/    # Regras de negócio
+├── routes/    # Camada HTTP (FastAPI)
+├── database/    # Configuração de engine e sessão
+├── exception_handlers.py    # Tratamento global de erros
+├── schemas.py    # Modelos Pydantic
+└── main.py    # Ponto de entrada da aplicação
+
+
+### Fluxo interno da aplicação:
+
+
+- routes → services → crud → models
+
+
+---
+
+## Regras de Negócio
+
+- Um funcionário não pode possuir mais de um apontamento aberto simultaneamente.
+- Funcionários inativos não podem iniciar novos apontamentos.
+- Atividades inativas não permitem novos apontamentos.
+- O sistema controla as transições de estado do apontamento, impedindo operações inválidas como:
+  - Pausar um apontamento já pausado.
+  - Retomar um apontamento que não esteja pausado.
+  - Finalizar um apontamento já finalizado.
+- Ao desativar um funcionário:
+  - Todos os apontamentos com status `INICIADO` ou `PAUSADO` são finalizados automaticamente.
+  - O `finish_type` é definido como `CANCELADO`.
+  - Um motivo de cancelamento é registrado.
+- Apenas apontamentos concluídos (`finish_type = CONCLUIDA`) devem ser considerados para métricas futuras.
+- Erros de domínio retornam respostas padronizadas contendo:
+  - `error_code`
+  - `detail`
+
+---
+
+## Executando Localmente
+
+### 1. Criar ambiente virtual
 
 ```bash
-
 python -m venv venv
 
-venv\Scripts\activate  # Windows
-source venv/bin/activate # Linux/macOS
+- Ativar:
+Windows: venv\Scripts\activate
+Linux/macOS: source venv/bin/activate
 
+- Instalar dependências
 pip install -r requirements.txt
+
+- Criar tabelas
+python -m app.create_tables
+
+- Iniciar aplicação
 uvicorn app.main:app --reload
 
-```
+Acesse:
+http://127.0.0.1:8000/docs
+
+Executando com Docker
+
+- Build e execução
+docker compose up --build
+- Criar tabelas dentro do container
+docker compose run --rm api python -m app.create_tables
 
 Acesse:
+http://127.0.0.1:8000/docs
+```
+### Estrutura do Banco de Dados
 
-API: http://127.0.0.1:8000
+Entidades principais:
 
-Docs: http://127.0.0.1:8000/docs
+- Employee
 
----
+- Activity
 
-### Status
+- TimeEntry
 
-Em desenvolvimento contínuo.
+- TimeEntryBlock
 
-Próximos passos:
+O tempo total de um apontamento é calculado com base na soma dos blocos de tempo registrados entre início e pausa/finalização.
 
-- Métricas por atividade
+### Evolução do Projeto
 
-- Métricas por funcionário
+O projeto continuará evoluindo com melhorias incrementais, incluindo:
 
-- Endpoints completos
+- Métricas de desempenho por atividade
 
-- Evolução para ambiente de produção
+- Migração para PostgreSQL
+
+- Testes automatizados
+
+- Ajustes arquiteturais conforme crescimento da aplicação
+
+### Autor
+
+Cesar Augusto Dodó
+Projeto desenvolvido com foco em consolidação de conhecimentos em backend e boas práticas de engenharia de software.
