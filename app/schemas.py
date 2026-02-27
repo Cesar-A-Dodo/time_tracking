@@ -56,3 +56,12 @@ class TimeEntryRead(TimeEntryBase):
 
     class Config:
         from_attributes = True
+
+class ActivityAverageTimeRead(BaseModel):
+    activity_id: int
+    completed_entries: int
+    average_seconds: float
+    average_minutes: float
+
+    class Config:
+        from_attributes = True
