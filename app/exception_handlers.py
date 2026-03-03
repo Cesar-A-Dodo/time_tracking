@@ -15,6 +15,9 @@ from app.services.exceptions import (
     EmployeeAlreadyInactiveError,
 
     ActivityAlreadyInactiveError,
+
+    ClientNotFoundError,
+    ClientAlreadyInactiveError,
 )
 
 
@@ -33,6 +36,10 @@ def register_exception_handlers(app: FastAPI) -> None:
     @app.exception_handler(ActivityNotFoundError)
     async def activity_not_found_handler(request: Request, exc: ActivityNotFoundError):
         return _error(404, "ACTIVITY_NOT_FOUND", str(exc))
+    
+    @app.exception_handler(ClientNotFoundError)
+    async def client_not_found_handler(request: Request, exc: ClientNotFoundError):
+        return _error(404, "CLIENT_NOT_FOUND", str(exc))
 
     @app.exception_handler(ValueError)
     async def value_error_handler(request: Request, exc: ValueError):
@@ -45,6 +52,10 @@ def register_exception_handlers(app: FastAPI) -> None:
     @app.exception_handler(ActivityAlreadyInactiveError)
     async def activity_already_inactive_handler(request: Request, exc: ActivityAlreadyInactiveError):
         return _error(409, "ACTIVITY_ALREADY_INACTIVE", str(exc))
+    
+    @app.exception_handler(ClientAlreadyInactiveError)
+    async def client_already_inactive_handler(request: Request, exc: ClientAlreadyInactiveError):
+        return _error(409, "CLIENT_ALREADY_INACTIVE", str(exc))
 
     @app.exception_handler(OpenTimeEntryExistsError)
     async def open_time_entry_exists_handler(request: Request, exc: OpenTimeEntryExistsError):

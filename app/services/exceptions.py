@@ -48,3 +48,11 @@ class ActivityInactiveError(ActivityError):
 
 class ActivityAlreadyInactiveError(ActivityError):
     pass
+
+
+class ClientNotFoundError(ServiceError):
+    pass
+
+
+class ClientAlreadyInactiveError(ServiceError):
+    pass
