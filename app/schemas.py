@@ -11,35 +11,6 @@ class FinishType(str, Enum):
     CONCLUIDA = "CONCLUIDA"
     CANCELADO = "CANCELADO"
 
-class EmployeeBase(BaseModel):
-    name: str
-    role: str
-
-class EmployeeCreate(EmployeeBase):
-    pass
-
-class EmployeeRead(EmployeeBase):
-    id: int
-    is_active: bool
-
-    class Config:
-        from_attributes = True
-
-class ActivityBase(BaseModel):
-    name: str
-    client: str
-
-class ActivityCreate(ActivityBase):
-    pass
-
-class ActivityRead(ActivityBase):
-    id: int
-    is_active: bool
-    estimated_time_minutes: int | None = None
-
-    class Config:
-        from_attributes = True
-
 
 class TimeEntryBase(BaseModel):
     employee_id: int
@@ -57,6 +28,38 @@ class TimeEntryRead(TimeEntryBase):
     class Config:
         from_attributes = True
 
+
+class EmployeeBase(BaseModel):
+    name: str
+    role: str
+
+class EmployeeCreate(EmployeeBase):
+    pass
+
+class EmployeeRead(EmployeeBase):
+    id: int
+    is_active: bool
+
+    class Config:
+        from_attributes = True
+
+
+class ActivityCreate(BaseModel):
+    name: str
+    client_id: int
+    estimated_time_minutes: int | None = None
+
+
+class ActivityRead(BaseModel):
+    id: int
+    name: str
+    client_id: int
+    estimated_time_minutes: int | None = None
+    is_active: bool
+
+    class Config:
+        from_attributes = True
+
 class ActivityAverageTimeRead(BaseModel):
     activity_id: int
     completed_entries: int
@@ -65,6 +68,7 @@ class ActivityAverageTimeRead(BaseModel):
 
     class Config:
         from_attributes = True
+
 
 class ClientCreate(BaseModel):
     name: str

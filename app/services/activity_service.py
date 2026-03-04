@@ -1,21 +1,34 @@
 from sqlalchemy.orm import Session
+
 from app.models.activity import Activity
 from app.crud.activity import create_activity, get_activity, list_activities
-from app.services.exceptions import ActivityNotFoundError, ActivityAlreadyInactiveError
+from app.crud.client import get_client_by_id
+from app.services.exceptions import (
+    ActivityNotFoundError,
+    ActivityAlreadyInactiveError,
+    ClientNotFoundError,
+    ClientInactiveError,
+)
 
 
 def create_new_activity(
-        db: Session,
-        *,
-        name: str,
-        client: str,
-        estimated_time_minutes: int | None = None,
+    db: Session,
+    *,
+    name: str,
+    client_id: int,
+    estimated_time_minutes: int | None = None,
 ) -> Activity:
+    client = get_client_by_id(db, client_id)
+    if not client:
+        raise ClientNotFoundError("Cliente não encontrado!")
+    if not client.is_active:
+        raise ClientInactiveError("Cliente inativo! Não é possível criar atividades.")
+
     activity = Activity(
-        name = name,
-        client = client,
-        estimated_time_minutes = estimated_time_minutes,
-        is_active = True,
+        name=name,
+        client_id=client_id,
+        estimated_time_minutes=estimated_time_minutes,
+        is_active=True,
     )
 
     create_activity(db, activity)
@@ -32,25 +45,23 @@ def get_activity_by_id(db: Session, activity_id: int) -> Activity:
 
 
 def list_all_activities(db: Session, *, only_active: bool = False) -> list[Activity]:
-    return list_activities(db, only_active = only_active)
+    return list_activities(db, only_active=only_active)
 
 
 def update_activity(
-        db: Session,
-        activity_id: int,
-        *,
-        name: str | None = None,
-        client: str | None = None,
-        estimated_time_minutes: int | None = None,
+    db: Session,
+    activity_id: int,
+    *,
+    name: str | None = None,
+    estimated_time_minutes: int | None = None,
 ) -> Activity:
     activity = get_activity_by_id(db, activity_id)
 
     if name is not None:
         activity.name = name
-    if client is not None:
-        activity.client = client
 
-    activity.estimated_time_minutes = estimated_time_minutes
+    if estimated_time_minutes is not None:
+        activity.estimated_time_minutes = estimated_time_minutes
 
     db.commit()
     db.refresh(activity)
@@ -59,12 +70,11 @@ def update_activity(
 
 def disable_activity(db: Session, activity_id: int) -> Activity:
     activity = get_activity_by_id(db, activity_id)
-    
+
     if not activity.is_active:
         raise ActivityAlreadyInactiveError("Atividade já está inativa!")
-    
-    activity.is_active = False
 
+    activity.is_active = False
     db.commit()
     db.refresh(activity)
     return activity

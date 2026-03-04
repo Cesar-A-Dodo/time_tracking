@@ -12,6 +12,7 @@ from app.services.exceptions import (
     OpenTimeEntryExistsError,
     InvalidStatusTransitionError,
     TimeEntryAlreadyFinalizedError,
+    ClientInactiveError,
 )
 
 def start_time_entry(db: Session, employee_id: int, activity_id: int) -> TimeEntry:
@@ -26,6 +27,8 @@ def start_time_entry(db: Session, employee_id: int, activity_id: int) -> TimeEnt
         raise ActivityNotFoundError("Atividade inexistente!")
     if not activity.is_active:
         raise ActivityInactiveError("Atividade inativa!")
+    if not activity.client.is_active:
+        raise ClientInactiveError("Cliente inativo! Não é possível iniciar apontamento.")
     
     open_entry = (
         db.query(TimeEntry)

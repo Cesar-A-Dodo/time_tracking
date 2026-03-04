@@ -56,3 +56,6 @@ class ClientNotFoundError(ServiceError):
 
 class ClientAlreadyInactiveError(ServiceError):
     pass
+
+class ClientInactiveError(ServiceError):
+    pass

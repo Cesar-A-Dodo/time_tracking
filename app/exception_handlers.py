@@ -18,6 +18,7 @@ from app.services.exceptions import (
 
     ClientNotFoundError,
     ClientAlreadyInactiveError,
+    ClientInactiveError,
 )
 
 
@@ -76,6 +77,10 @@ def register_exception_handlers(app: FastAPI) -> None:
     @app.exception_handler(InvalidStatusTransitionError)
     async def invalid_status_transition_handler(request: Request, exc: InvalidStatusTransitionError):
         return _error(400, "INVALID_STATUS_TRANSITION", str(exc))
+
+    @app.exception_handler(ClientInactiveError)
+    async def client_inactive_handler(request: Request, exc: ClientInactiveError):
+        return _error(400, "CLIENT_INACTIVE", str(exc))
 
     @app.exception_handler(ServiceError)
     async def service_error_handler(request: Request, exc: ServiceError):

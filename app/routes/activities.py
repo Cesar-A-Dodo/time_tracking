@@ -25,13 +25,12 @@ def get_db():
 
 class ActivityCreateRequest(BaseModel):
     name: str
-    client: str
+    client_id: int
     estimated_time_minutes: int | None = None
 
 
 class ActivityUpdate(BaseModel):
     name: str | None = None
-    client: str | None = None
     estimated_time_minutes: int | None = None
 
 
@@ -40,7 +39,7 @@ def create_activity(payload: ActivityCreateRequest, db: Session = Depends(get_db
     return create_new_activity(
         db,
         name=payload.name,
-        client=payload.client,
+        client_id=payload.client_id,
         estimated_time_minutes=payload.estimated_time_minutes,
     )
 
@@ -61,7 +60,6 @@ def patch_activity(activity_id: int, payload: ActivityUpdate, db: Session = Depe
         db,
         activity_id,
         name=payload.name,
-        client=payload.client,
         estimated_time_minutes=payload.estimated_time_minutes,
     )
 
