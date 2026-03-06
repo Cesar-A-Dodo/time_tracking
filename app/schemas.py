@@ -81,3 +81,25 @@ class ClientRead(BaseModel):
 
     class Config:
         from_attributes = True
+
+
+class ActivitySummaryMetricsRead(BaseModel):
+    activity_id: int
+
+    completed_entries: int
+    canceled_entries: int
+
+    total_completed_seconds: float
+    total_completed_minutes: float
+
+    average_completed_seconds: float
+    average_completed_minutes: float
+
+    min_completed_seconds: float
+    min_completed_minutes: float
+
+    max_completed_seconds: float
+    max_completed_minutes: float
+
+    class Config:
+        from_attributes = True
