@@ -3,6 +3,7 @@ from datetime import timedelta
 from app.models.time_entry import TimeEntry
 from app.schemas import TimeEntryStatus, FinishType
 from app.services.activity_service import get_activity_by_id
+from app.services.employee_service import get_employee_by_id
 
 
 def get_activity_average_time(db: Session, activity_id: int) -> dict:
@@ -96,4 +97,47 @@ def get_activity_summary_metrics(db: Session, activity_id: int) -> dict:
         "min_completed_minutes": min_s / 60,
         "max_completed_seconds": max_s,
         "max_completed_minutes": max_s / 60,
+    }
+
+def get_employee_activity_average_time(
+    db: Session,
+    employee_id: int,
+    activity_id: int,
+) -> dict:
+    get_employee_by_id(db, employee_id)
+    get_activity_by_id(db, activity_id)
+
+    entries = (
+        db.query(TimeEntry)
+        .filter(
+            TimeEntry.employee_id == employee_id,
+            TimeEntry.activity_id == activity_id,
+            TimeEntry.status == TimeEntryStatus.FINALIZADO,
+            TimeEntry.finish_type == FinishType.CONCLUIDA,
+        )
+        .all()
+    )
+
+    if not entries:
+        return {
+            "employee_id": employee_id,
+            "activity_id": activity_id,
+            "completed_entries": 0,
+            "average_seconds": 0.0,
+            "average_minutes": 0.0,
+        }
+
+    total = timedelta()
+    for entry in entries:
+        total += entry.calculate_total_time()
+
+    avg = total / len(entries)
+    avg_seconds = avg.total_seconds()
+
+    return {
+        "employee_id": employee_id,
+        "activity_id": activity_id,
+        "completed_entries": len(entries),
+        "average_seconds": float(avg_seconds),
+        "average_minutes": float(avg_seconds / 60),
     }

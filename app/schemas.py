@@ -103,3 +103,13 @@ class ActivitySummaryMetricsRead(BaseModel):
 
     class Config:
         from_attributes = True
+
+class EmployeeActivityAverageTimeRead(BaseModel):
+    employee_id: int
+    activity_id: int
+    completed_entries: int
+    average_seconds: float
+    average_minutes: float
+
+    class Config:
+        from_attributes = True
