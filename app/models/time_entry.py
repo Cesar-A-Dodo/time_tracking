@@ -1,4 +1,4 @@
-from datetime import timedelta
+from datetime import timedelta, datetime
 from sqlalchemy import ForeignKey, Enum, String
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 from app.database.base import Base
@@ -38,6 +38,8 @@ class TimeEntry(Base):
     )
 
     cancel_reason: Mapped[str | None] = mapped_column(String(255), nullable=True)
+
+    finished_at: Mapped[datetime | None] = mapped_column(nullable=True)
     
     employee: Mapped["Employee"] = relationship(
         back_populates="time_entries"

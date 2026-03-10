@@ -1,3 +1,4 @@
+from datetime import date
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.database.session import SessionLocal
@@ -30,6 +31,14 @@ def activity_summary(activity_id: int, db: Session = Depends(get_db)):
 def employee_activity_average_time(
     employee_id: int,
     activity_id: int,
+    start_date: date | None = None,
+    end_date: date | None = None,
     db: Session = Depends(get_db),
 ):
-    return get_employee_activity_average_time(db, employee_id, activity_id)
+    return get_employee_activity_average_time(
+        db,
+        employee_id,
+        activity_id,
+        start_date=start_date,
+        end_date=end_date,
+    )

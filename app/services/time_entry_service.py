@@ -115,6 +115,7 @@ def finish_time_entry(db: Session, time_entry_id: int) -> TimeEntry:
 
     time_entry.status = TimeEntryStatus.FINALIZADO
     time_entry.finish_type = FinishType.CONCLUIDA
+    time_entry.finished_at = datetime.now(timezone.utc)
 
     db.commit()
     db.refresh(time_entry)
@@ -138,6 +139,7 @@ def cancel_time_entry(db: Session, time_entry_id: int) -> TimeEntry:
 
     time_entry.status = TimeEntryStatus.FINALIZADO
     time_entry.finish_type = FinishType.CANCELADO
+    time_entry.finished_at = datetime.now(timezone.utc)
 
     db.commit()
     db.refresh(time_entry)

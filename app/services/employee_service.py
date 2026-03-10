@@ -1,3 +1,4 @@
+from datetime import datetime, timezone
 from sqlalchemy.orm import Session
 from app.models.employee import Employee
 from app.models.time_entry import TimeEntry
@@ -78,6 +79,7 @@ def disable_employee(
         entry.status = TimeEntryStatus.FINALIZADO
         entry.finish_type = FinishType.CANCELADO
         entry.cancel_reason = reason
+        entry.finished_at = datetime.now(timezone.utc)
     
     db.commit()
     db.refresh(employee)

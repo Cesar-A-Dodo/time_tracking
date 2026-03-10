@@ -1,5 +1,5 @@
 from sqlalchemy.orm import Session
-from datetime import timedelta
+from datetime import timedelta, datetime, date, timezone
 from app.models.time_entry import TimeEntry
 from app.schemas import TimeEntryStatus, FinishType
 from app.services.activity_service import get_activity_by_id
@@ -103,6 +103,8 @@ def get_employee_activity_average_time(
     db: Session,
     employee_id: int,
     activity_id: int,
+    start_date: date | None = None,
+    end_date: date | None = None,
 ) -> dict:
     get_employee_by_id(db, employee_id)
     get_activity_by_id(db, activity_id)
@@ -127,6 +129,16 @@ def get_employee_activity_average_time(
             "average_minutes": 0.0,
         }
 
+    if start_date:
+        start_dt = datetime.combine(start_date, datetime.min.time()).replace(tzinfo=timezone.utc)
+        query = query.filter(TimeEntry.finished_at >= start_dt)
+
+    if end_date:
+        end_dt = datetime.combine(end_date, datetime.max.time()).replace(tzinfo=timezone.utc)
+        query = query.filter(TimeEntry.finished_at <= end_dt)
+
+    entries = query.all()
+    
     total = timedelta()
     for entry in entries:
         total += entry.calculate_total_time()
