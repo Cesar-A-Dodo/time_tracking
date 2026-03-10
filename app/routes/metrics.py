@@ -2,8 +2,8 @@ from datetime import date
 from fastapi import APIRouter, Depends
 from sqlalchemy.orm import Session
 from app.database.session import SessionLocal
-from app.schemas import ActivityAverageTimeRead, ActivitySummaryMetricsRead, EmployeeActivityAverageTimeRead
-from app.services.metrics_service import get_activity_average_time, get_activity_summary_metrics, get_employee_activity_average_time
+from app.schemas import ActivityAverageTimeRead, ActivitySummaryMetricsRead, EmployeeActivityAverageTimeRead, ActivityPerformanceRankingRead
+from app.services.metrics_service import get_activity_average_time, get_activity_summary_metrics, get_employee_activity_average_time, get_activity_performance_ranking
 
 router = APIRouter(prefix="/metrics", tags=["Metrics"])
 
@@ -38,6 +38,23 @@ def employee_activity_average_time(
     return get_employee_activity_average_time(
         db,
         employee_id,
+        activity_id,
+        start_date=start_date,
+        end_date=end_date,
+    )
+
+@router.get(
+    "/activities/{activity_id}/performance-ranking",
+    response_model=ActivityPerformanceRankingRead,
+)
+def activity_performance_ranking(
+    activity_id: int,
+    start_date: date | None = None,
+    end_date: date | None = None,
+    db: Session = Depends(get_db),
+):
+    return get_activity_performance_ranking(
+        db,
         activity_id,
         start_date=start_date,
         end_date=end_date,

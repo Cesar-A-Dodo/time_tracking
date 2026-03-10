@@ -113,3 +113,21 @@ class EmployeeActivityAverageTimeRead(BaseModel):
 
     class Config:
         from_attributes = True
+
+class ActivityEmployeePerformanceRead(BaseModel):
+    employee_id: int
+    employee_name: str
+    completed_entries: int
+    average_seconds: float
+    average_minutes: float
+
+    class Config:
+        from_attributes = True
+
+
+class ActivityPerformanceRankingRead(BaseModel):
+    activity_id: int
+    ranking: list[ActivityEmployeePerformanceRead]
+
+    class Config:
+        from_attributes = True
