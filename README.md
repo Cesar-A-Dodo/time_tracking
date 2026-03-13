@@ -51,8 +51,11 @@ app/
 
 ---
 
-## Fluxo interno da aplicação:
-└── routes → services → crud → models
+## Fluxo interno da aplicação
+
+```text
+routes → services → crud → models
+```
 
 ---
 
@@ -66,6 +69,42 @@ app/
 
 ---
 
+---
+
+## Métricas
+
+A API fornece métricas operacionais baseadas em apontamentos concluídos (`finish_type = CONCLUIDA`).
+
+Métricas disponíveis atualmente:
+
+- **Resumo por atividade**
+
+  Estatísticas gerais da atividade incluindo:
+  - quantidade de execuções concluídas
+  - quantidade de execuções canceladas
+  - tempo total
+  - tempo médio
+  - tempo mínimo
+  - tempo máximo
+
+- **Tempo médio por funcionário em uma atividade**
+
+  Calcula quanto tempo um funcionário leva em média para executar uma atividade específica.
+
+- **Ranking de performance por atividade**
+
+  Lista os funcionários ordenados pelo menor tempo médio de execução da atividade.
+
+- **Filtro por período**
+
+  As métricas podem ser filtradas por intervalo de datas utilizando:
+
+  ```text
+  start_date
+  end_date
+
+---
+
 ## Regras de Negócio
 
 - Um funcionário não pode possuir mais de um apontamento aberto simultaneamente.
@@ -75,8 +114,8 @@ app/
 - Atividades inativas não permitem novos apontamentos.
 
 - Clientes inativos bloqueiam:
-- criação de novas atividades
-- início de novos apontamentos vinculados às atividades daquele cliente
+  - criação de novas atividades
+  - início de novos apontamentos vinculados às atividades daquele cliente
 
 - O sistema controla as transições de estado do apontamento, impedindo operações inválidas como:
 - pausar um apontamento já pausado
@@ -167,7 +206,7 @@ O tempo total de um apontamento é calculado com base na soma dos blocos de temp
 
 O projeto continuará evoluindo com melhorias incrementais, incluindo:
 
-Expansão de métricas e filtros
+Expansão das métricas operacionais
 
 Migração para PostgreSQL
 
@@ -175,7 +214,7 @@ Testes automatizados
 
 Ajustes arquiteturais conforme crescimento da aplicação
 
-Autor
+## Autor
 
 Cesar Augusto Dodó
 Projeto desenvolvido com foco em consolidação de conhecimentos em backend e boas práticas de engenharia de software.
